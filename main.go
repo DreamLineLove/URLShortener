@@ -6,11 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
 	var filename string
-	flag.StringVar(&filename, "filename", "source.yml", "The name of the yaml source file")
+	flag.StringVar(&filename, "filename", "source.yml", `The name of the source file. File extension must be either ".yml" or ".json".`)
+
+	flag.Parse()
 
 	mux := http.NewServeMux()
 
@@ -24,14 +27,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var yamlBytes []byte
-	file.Read(yamlBytes)
-
-	yamlHandlerFn, err := YAMLHandler(yamlBytes, mapHandlerFn)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var sourceBytes []byte
+	file.Read(sourceBytes)
 
 	fmt.Println("Starting the server on 8080...")
-	http.ListenAndServe(":8080", yamlHandlerFn)
+	fmt.Println(strings.HasSuffix(filename, ".json"))
+	switch strings.HasSuffix(filename, ".json") {
+	case true:
+		jsonHandlerFn, err := JSONHandler(sourceBytes, mapHandlerFn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		http.ListenAndServe(":8080", jsonHandlerFn)
+	default:
+		yamlHandlerFn, err := YAMLHandler(sourceBytes, mapHandlerFn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		http.ListenAndServe(":8080", yamlHandlerFn)
+	}
 }
