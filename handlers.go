@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -23,6 +24,16 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 		return nil, err
 	}
 	pathMap := buildMap(parsedYaml)
+	return MapHandler(pathMap, fallback), nil
+}
+
+func JSONHandler(jsonData []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	var parsedJson []map[interface{}]interface{}
+	err := json.Unmarshal(jsonData, &parsedJson)
+	if err != nil {
+		return nil, err
+	}
+	pathMap := buildMap(parsedJson)
 	return MapHandler(pathMap, fallback), nil
 }
 
