@@ -28,12 +28,21 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 }
 
 func JSONHandler(jsonData []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	var parsedJson []map[interface{}]interface{}
+	var parsedJson []struct {
+		Path string `json:"path"`
+		URL  string `json:"url"`
+	}
+
 	err := json.Unmarshal(jsonData, &parsedJson)
 	if err != nil {
 		return nil, err
 	}
-	pathMap := buildMap(parsedJson)
+
+	pathMap := make(map[string]string)
+	for _, item := range parsedJson {
+		pathMap[item.Path] = item.URL
+	}
+
 	return MapHandler(pathMap, fallback), nil
 }
 

@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/url1",
+    "url": "https://example.com/1"
+  },
+  {
+    "path": "/url2",
+    "url": "https://example.com/2"
+  },
+  {
+    "path": "/url3",
+    "url": "https://example.com/3"
+  }
+]

@@ -27,11 +27,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var sourceBytes []byte
-	file.Read(sourceBytes)
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sourceBytes := make([]byte, fileInfo.Size())
+	_, err = file.Read(sourceBytes)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("Starting the server on 8080...")
-	fmt.Println(strings.HasSuffix(filename, ".json"))
 	switch strings.HasSuffix(filename, ".json") {
 	case true:
 		jsonHandlerFn, err := JSONHandler(sourceBytes, mapHandlerFn)
