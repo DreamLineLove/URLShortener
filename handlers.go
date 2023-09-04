@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
@@ -21,7 +20,6 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	parsedYaml, err := parseYAML(yml)
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	pathMap := buildMap(parsedYaml)
