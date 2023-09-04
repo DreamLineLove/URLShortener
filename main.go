@@ -1,12 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
+	var filename string
+	flag.StringVar(&filename, "filename", "source.yml", "The name of the yaml source file")
+
 	mux := http.NewServeMux()
 
 	pathsToUrls := map[string]string{
@@ -15,14 +20,14 @@ func main() {
 	}
 	mapHandlerFn := MapHandler(pathsToUrls, mux)
 
-	yaml := `
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
+	file, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var yamlBytes []byte
+	file.Read(yamlBytes)
 
-	yamlHandlerFn, err := YAMLHandler([]byte(yaml), mapHandlerFn)
+	yamlHandlerFn, err := YAMLHandler(yamlBytes, mapHandlerFn)
 	if err != nil {
 		log.Fatal(err)
 	}
