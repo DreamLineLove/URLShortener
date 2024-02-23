@@ -2,7 +2,7 @@
 
 <img src="https://cdn.worldvectorlogo.com/logos/gopher.svg" width="175px" />
 
-http.Handler that forwards paths to other URLs (similar to Bitly)
+A program written in Go that forwards paths to other URLs (similar to Bitly)
 
 ## Usage
 
