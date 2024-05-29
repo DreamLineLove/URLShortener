@@ -11,15 +11,15 @@ import (
 
 func main() {
 	var filename string
-	flag.StringVar(&filename, "filename", "source.yml", `The name of the source file. File extension must be either ".yml" or ".json".`)
+	flag.StringVar(&filename, "filename", "source.yml", `Give the file containing URLs to redirect. Must be either .yml or .json format.`)
 
 	flag.Parse()
 
 	mux := http.NewServeMux()
 
 	pathsToUrls := map[string]string{
-		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
+		"/short": "https://github.com/DreamLineLove",
+		"/long": "https://github.com/DreamLineLove/DreamLineLove",
 	}
 	mapHandlerFn := MapHandler(pathsToUrls, mux)
 

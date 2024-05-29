@@ -1,14 +1,14 @@
 [
   {
-    "path": "/url1",
-    "url": "https://example.com/1"
+    "path": "/meta",
+    "url": "https://www.facebook.com/"
   },
   {
-    "path": "/url2",
-    "url": "https://example.com/2"
+    "path": "/wiki",
+    "url": "https://www.wikipedia.org/"
   },
   {
-    "path": "/url3",
-    "url": "https://example.com/3"
+    "path": "/steve",
+    "url": "https://www.apple.com/stevejobs/"
   }
 ]
