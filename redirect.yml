@@ -1,0 +1,4 @@
+- path: /dotfiles
+  url: https://www.github.com/DreamLineLove/.dotfiles
+- path: /regex
+  url: https://www.github.com/DreamLineLove/regex-cli

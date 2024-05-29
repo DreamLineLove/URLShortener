@@ -1,65 +1,56 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"encoding/json"
 
 	"gopkg.in/yaml.v2"
 )
 
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if redirectUrl, exists := pathsToUrls[r.URL.Path]; exists {
-			http.Redirect(w, r, redirectUrl, http.StatusPermanentRedirect)
-		} else {
-			fallback.ServeHTTP(w, r)
+		if path, ok := pathsToUrls[r.URL.Path]; ok {
+			http.Redirect(w, r, path, http.StatusFound)
 		}
+		fallback.ServeHTTP(w, r)
 	}
 }
 
-func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	parsedYaml, err := parseYAML(yml)
-	if err != nil {
+func YAMLHandler(yamldata []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	var pathsToUrls []struct {
+		Path string `yaml:"path"`
+		URL  string `yaml:"url"`
+	}
+	if err := yaml.Unmarshal(yamldata, &pathsToUrls); err != nil {
 		return nil, err
 	}
-	pathMap := buildMap(parsedYaml)
-	return MapHandler(pathMap, fallback), nil
+	return func(w http.ResponseWriter, r *http.Request) {
+		for _, pathtourl := range pathsToUrls {
+			if pathtourl.Path == r.URL.Path {
+				http.Redirect(w, r, pathtourl.URL, http.StatusFound)
+				return
+			}
+		}
+		fallback.ServeHTTP(w, r)
+	}, nil
 }
 
-func JSONHandler(jsonData []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	var parsedJson []struct {
+func JSONHandler(jsondata []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	var pathsToUrls []struct {
 		Path string `json:"path"`
 		URL  string `json:"url"`
 	}
-
-	err := json.Unmarshal(jsonData, &parsedJson)
-	if err != nil {
+	if err := json.Unmarshal(jsondata, &pathsToUrls); err != nil {
 		return nil, err
 	}
-
-	pathMap := make(map[string]string)
-	for _, item := range parsedJson {
-		pathMap[item.Path] = item.URL
-	}
-
-	return MapHandler(pathMap, fallback), nil
-}
-
-func parseYAML(yml []byte) ([]map[interface{}]interface{}, error) {
-	var m []map[interface{}]interface{}
-	err := yaml.Unmarshal(yml, &m)
-	return m, err
-}
-
-func buildMap(data []map[interface{}]interface{}) map[string]string {
-	m := make(map[string]string)
-	for _, v := range data {
-		for key, value := range v {
-			keyStr := fmt.Sprintf("%v", key)
-			valueStr := fmt.Sprintf("%v", value)
-			m[keyStr] = valueStr
+	return func(w http.ResponseWriter, r *http.Request) {
+		for _, pathtourl := range pathsToUrls {
+			if pathtourl.Path == r.URL.Path {
+				http.Redirect(w, r, pathtourl.URL, http.StatusFound)
+				return
+			}
 		}
-	}
-	return m
+		fallback.ServeHTTP(w, r)
+	}, nil
 }

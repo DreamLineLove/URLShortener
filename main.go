@@ -1,58 +1,68 @@
 package main
 
 import (
+    "strings"
 	"flag"
 	"fmt"
-	"log"
+    "os"
 	"net/http"
-	"os"
-	"strings"
 )
 
+func defaultMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", hello)
+	return mux
+}
+
+func hello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "The page you have requested does not exist!")
+}
+
 func main() {
-	var filename string
-	flag.StringVar(&filename, "filename", "source.yml", `Give the file containing URLs to redirect. Must be either .yml or .json format.`)
+    var path string
+	flag.StringVar(&path, "path", "redirect.yml", "path to json or yaml file containing redirect URLs")
 
 	flag.Parse()
 
-	mux := http.NewServeMux()
+	mux := defaultMux()
 
 	pathsToUrls := map[string]string{
-		"/short": "https://github.com/DreamLineLove",
-		"/long": "https://github.com/DreamLineLove/DreamLineLove",
-	}
-	mapHandlerFn := MapHandler(pathsToUrls, mux)
-
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	fileInfo, err := file.Stat()
-	if err != nil {
-		log.Fatal(err)
+		"/me": "https://github.com/DreamLineLove",
+        "/idol": "https://github.com/ThePrimeagen",
 	}
 
-	sourceBytes := make([]byte, fileInfo.Size())
-	_, err = file.Read(sourceBytes)
-	if err != nil {
-		log.Fatal(err)
-	}
+	mapHandler := MapHandler(pathsToUrls, mux)
 
-	fmt.Println("Starting the server on 8080...")
-	switch strings.HasSuffix(filename, ".json") {
-	case true:
-		jsonHandlerFn, err := JSONHandler(sourceBytes, mapHandlerFn)
+    if strings.HasSuffix(path, ".json") {
+		jsonData, err := os.ReadFile(path)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		http.ListenAndServe(":8080", jsonHandlerFn)
-	default:
-		yamlHandlerFn, err := YAMLHandler(sourceBytes, mapHandlerFn)
+
+		// fallback
+		jsonHandler, err := JSONHandler([]byte(jsonData), mapHandler)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		http.ListenAndServe(":8080", yamlHandlerFn)
-	}
+
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", jsonHandler)
+    } else if strings.HasSuffix(path, ".yml") {
+		yamlData, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+
+		// fallback
+		yamlHandler, err := YAMLHandler([]byte(yamlData), mapHandler)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", yamlHandler)
+    } else {
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", mapHandler)
+    }
 }
